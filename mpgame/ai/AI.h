@@ -432,6 +432,7 @@ class idAI : public idActor {
 friend class rvAIManager;
 friend class idAASFindAttackPosition;
 public:
+
 	CLASS_PROTOTYPE( idAI );
 
 							idAI();

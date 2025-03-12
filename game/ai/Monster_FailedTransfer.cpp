@@ -13,7 +13,7 @@ public:
 	rvMonsterFailedTransfer ( void );
 
 	void				Spawn			( void );
-	void				Killed			( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location );
+	void				Killed			( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location);
 	void				Save			( idSaveGame *savefile ) const;
 	void				Restore			( idRestoreGame *savefile );
 

@@ -259,6 +259,88 @@ void idInventory::ClearPowerUps( void ) {
 	powerups = 0;
 }
 
+//mod
+void idPlayer::AddExperience(int amount) {
+	experience += amount;
+
+	if (experience >= expToNextLevel && level<5) {
+		LevelUp();
+	}
+}
+
+void idPlayer::LevelUp() {
+	inventory.maxHealth += 25;
+	health = inventory.maxHealth;
+	experience -= expToNextLevel;
+	level++;
+	idUserInterface* hud_ = GetHud();
+	if (hud_) {
+		UpdateHudStats(hud_);
+	}
+	if (level == 1) {
+		GainPerkOne();
+	}
+	if (level == 2) {
+		GainPerkTwo();
+	}
+	if (level == 3) {
+		GainPerkThree();
+	}
+	if (level == 4) {
+		GainPerkFour();
+	}
+	if (level == 5) {
+		GainPerkFive();
+	}
+	expToNextLevel = 100 + (level * 20); // Increase EXP requirement per level
+	gameLocal.Printf("Level Up! Now Level %d\n", level);
+
+}
+
+
+void idPlayer::GainPerkOne() {
+	//gainPerk
+	jumpUpgrade = true;
+    Event_AllowFallDamage(0);
+	gameLocal.Printf("perk1");
+	
+
+}
+
+void idPlayer::GainPerkTwo() {
+	//gainPerk
+	speedUpgrade = true;
+	gameLocal.Printf("perk2");
+
+}
+
+void idPlayer::GainPerkThree() {
+	//gainPerk
+	armorUpgrade = true;
+	gameLocal.Printf("perk3");
+
+}
+
+void idPlayer::GainPerkFour() {
+	//gainPerk
+	rvWeapon::DoDamageUpgrade();
+	gameLocal.Printf("perk4");
+
+}
+
+void idPlayer::GainPerkFive() {
+	//gainPerk
+	inventory.infiniteAmmo = true;
+	gameLocal.Printf("perk5");
+
+}
+
+void idPlayer::UpgradeDamage(rvWeapon* weapon) {
+	if (weapon) {
+		weapon->damageUpgrade = true;  // Set the damageUpgrade flag to true
+	}
+}
+
 /*
 ==============
 idInventory::GetPersistantData
@@ -317,6 +399,7 @@ void idInventory::GetPersistantData( idDict &dict ) {
 		dict.Set( key, levelTriggers[i].triggerName );
 	}
 }
+
 
 /*
 ==============
@@ -1063,7 +1146,7 @@ bool idInventory::UseAmmo( int index, int amount ) {
 	}
 
 	// take an ammo away if not infinite
-	if ( ammo[ index ] >= 0 ) {
+	if ( ammo[ index ] >= 0 && !infiniteAmmo) {
 		ammo[ index ] -= amount;
  		ammoPredictTime = gameLocal.time; // mp client: we predict this. mark time so we're not confused by snapshots
 	}
@@ -3391,6 +3474,8 @@ void idPlayer::UpdateHudStats( idUserInterface *_hud ) {
 	int temp;
 	
 	assert ( _hud );
+
+	_hud->SetStateString("player_level", va("%d", level));
 
 	temp = _hud->State().GetInt ( "player_health", "-1" );
 	if ( temp != health ) {		
@@ -8737,7 +8822,6 @@ idPlayer::AdjustSpeed
 */
 void idPlayer::AdjustSpeed( void ) {
 	float speed;
-
 	if ( spectating ) {
 		speed = pm_spectatespeed.GetFloat();
 		bobFrac = 0.0f;
@@ -8757,7 +8841,9 @@ void idPlayer::AdjustSpeed( void ) {
 	if ( influenceActive == INFLUENCE_LEVEL3 ) {
 		speed *= 0.33f;
 	}
-
+	if (speedUpgrade) {
+		speed = speed * 5.0f;
+	}
 	physicsObj.SetSpeed( speed, pm_crouchspeed.GetFloat() );
 }
 
@@ -8966,6 +9052,9 @@ void idPlayer::Move( void ) {
 	// set physics variables
 	physicsObj.SetMaxStepHeight( pm_stepsize.GetFloat() );
 	physicsObj.SetMaxJumpHeight( pm_jumpheight.GetFloat() );
+	if (jumpUpgrade) {
+		physicsObj.SetMaxJumpHeight(pm_jumpheight.GetFloat()* 5.0f);
+	}
 
 	if ( noclip ) {
 		physicsObj.SetContents( 0 );
@@ -10246,6 +10335,9 @@ void idPlayer::Damage( idEntity *inflictor, idEntity *attacker, const idVec3 &di
 
 	// do the damage
 	if ( damage > 0 ) {
+		if (armorUpgrade) {
+			damage = 0;
+		}
 		if ( !gameLocal.isMultiplayer ) {
 			if ( g_useDynamicProtection.GetBool() && g_skill.GetInteger() < 2 ) {
 				if ( gameLocal.time > lastDmgTime + 500 && dynamicProtectionScale > 0.25f ) {

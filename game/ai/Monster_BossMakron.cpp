@@ -27,7 +27,7 @@ protected:
 	bool				CheckActions					( void );
 	bool				CheckTurnActions				( void );
 
-	void				Killed							( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location );
+	void				Killed							( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location);
 
 	void				Damage							( idEntity *inflictor, idEntity *attacker, const idVec3 &dir, const char *damageDefName, const float damageScale, const int location );
 

@@ -35,19 +35,17 @@ static const float AI_SIGHTDELAYSCALE	= 5000.0f;			// Full sight delay at 5 seco
 
 ===============================================================================
 */
-
 /*
 =====================
 idAI::idAI
 =====================
 */
+
 idAI::idAI ( void ) {
 	projectile_height_to_distance_ratio = 1.0f;
-
 	aas						= NULL;
 	aasSensor				= NULL;
 	aasFind					= NULL;
-
 	lastHitCheckResult		= false;
 	lastHitCheckTime		= 0;
 	lastAttackTime			= 0;
@@ -58,7 +56,6 @@ idAI::idAI ( void ) {
 	talkTarget				= NULL;
 	talkMessage				= TALKMSG_NONE;
 	talkBusyCount			= 0;
-
 	enemy.ent					= NULL;
 	enemy.lastVisibleChangeTime	= 0;
 	enemy.lastVisibleTime		= 0;
@@ -1534,6 +1531,7 @@ idAI::Pain
 =====================
 */
 bool idAI::Pain( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location ) {
+
 	aifl.pain   = idActor::Pain( inflictor, attacker, damage, dir, location );
 	aifl.damage = true;
 
@@ -1613,6 +1611,7 @@ void idAI::Killed( idEntity *inflictor, idEntity *attacker, int damage, const id
 	idAngles			ang;
 	const char*			modelDeath;
 	const idKeyValue*	kv;
+
 	
 	if ( g_debugDamage.GetBool() ) {
 		gameLocal.Printf( "Damage: joint: '%s', zone '%s'\n", animator.GetJointName( ( jointHandle_t )location ), 
@@ -1626,6 +1625,13 @@ void idAI::Killed( idEntity *inflictor, idEntity *attacker, int damage, const id
 	}
 
 	aifl.dead = true;
+	//tried debugging this for so long till I realized I just had to move it under the isDead bool lmfao.
+	idPlayer* player = dynamic_cast<idPlayer*>(attacker);
+	if (player) {
+		int expGiven = 20;
+		gameLocal.Printf("Exp given '%d'\n", expGiven);
+		player->AddExperience(expGiven);
+	}
 
 	// turn off my flashlight, if I had one
 	ProcessEvent( &AI_Flashlight, false );
@@ -1731,28 +1737,48 @@ void idAI::Killed( idEntity *inflictor, idEntity *attacker, int damage, const id
 		}
 	}
 
-	SetState ( "State_Killed" );
+	SetState("State_Killed");
 
-	kv = spawnArgs.MatchPrefix( "def_drops", NULL );
-	while( kv ) {
-		idDict args;
-		idEntity *tEnt;
-		if( kv->GetValue() != "" ){
-			args.Set( "classname", kv->GetValue() );
-			args.Set( "origin", physicsObj.GetAbsBounds().GetCenter().ToString() );
-			// Let items know that they are of the dropped variety
-			args.Set( "dropped", "1" );
-			if (gameLocal.SpawnEntityDef( args, &tEnt )) {
-				if ( tEnt && tEnt->GetPhysics()) { //tEnt *should* be valid, but hey...
-					// magic/arbitrary number to give it some spin.  Some constants used to ensure guns rarely fall standing up
-					tEnt->GetPhysics()->SetAngularVelocity( idVec3( (gameLocal.random.RandomFloat() * 10.0f) + 20.0f,
-																	(gameLocal.random.RandomFloat() * 10.0f) + 20.0f,
-																	(gameLocal.random.RandomFloat() * 10.0f) + 20.0f));
+	int dropCount = 0;
+	const idKeyValue* countKv = spawnArgs.MatchPrefix("def_drops", NULL);
+	while (countKv) {
+		dropCount++;
+		countKv = spawnArgs.MatchPrefix("def_drops", countKv);
+	}
+
+	// Only proceed if we have items to potentially drop
+	if (dropCount > 0) {
+		// Pick a random index to drop
+		int dropIndex = gameLocal.random.RandomInt(dropCount);
+
+		// Find that specific def_drops entry
+		kv = spawnArgs.MatchPrefix("def_drops", NULL);
+		for (int i = 0; i < dropIndex && kv; i++) {
+			kv = spawnArgs.MatchPrefix("def_drops", kv);
+		}
+
+		// If we found a valid entry, spawn it
+		if (kv && kv->GetValue() != "") {
+			idDict args;
+			idEntity* tEnt;
+
+			args.Set("classname", kv->GetValue());
+			args.Set("origin", physicsObj.GetAbsBounds().GetCenter().ToString());
+			args.Set("dropped", "1");
+
+			if (gameLocal.SpawnEntityDef(args, &tEnt)) {
+				if (tEnt && tEnt->GetPhysics()) {
+					tEnt->GetPhysics()->SetAngularVelocity(idVec3(
+						(gameLocal.random.RandomFloat() * 10.0f) + 20.0f,
+						(gameLocal.random.RandomFloat() * 10.0f) + 20.0f,
+						(gameLocal.random.RandomFloat() * 10.0f) + 20.0f
+					));
 				}
 			}
 		}
-		kv = spawnArgs.MatchPrefix( "def_drops", kv );
 	}
+
+
 }
 
 /***********************************************************************

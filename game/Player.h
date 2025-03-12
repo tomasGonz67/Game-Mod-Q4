@@ -194,6 +194,7 @@ const int	ASYNC_PLAYER_TOURNEY_STATUS_BITS = idMath::BitsForInteger( PTS_NUM_STA
 
 class idInventory {
 public:
+	bool					infiniteAmmo = false;
 	int						maxHealth;
 	int						weapons;
 // RITUAL BEGIN
@@ -215,6 +216,8 @@ public:
 	int						ammoIndices[ MAX_WEAPONS ];
 	int						startingAmmo[ MAX_WEAPONS ];
 
+
+
  	int						lastGiveTime;
  	
 	idList<idDict *>		items;
@@ -227,10 +230,10 @@ public:
 							idInventory() { Clear(); }
 							~idInventory() { Clear(); }
 
+
 	// save games
 	void					Save( idSaveGame *savefile ) const;					// archives object for save game file
 	void					Restore( idRestoreGame *savefile );					// unarchives object from save game file
-
 	void					Clear( void );
 	void					GivePowerUp( idPlayer* player, int powerup, int msec );
 	void					ClearPowerUps( void );
@@ -304,6 +307,16 @@ public:
 	int						lastHitTime;			// last time projectile fired by player hit target
 	int						lastSavingThrowTime;	// for the "free miss" effect
 
+	//mod
+	int			level=0;
+	int			experience=0;
+	int			expToNextLevel=100;
+	bool        speedUpgrade = false;
+	bool        armorUpgrade = false;
+	bool        jumpUpgrade = false;
+	
+
+
 	struct playerFlags_s {
 		bool		forward			:1;
 		bool		backward		:1;
@@ -327,10 +340,12 @@ public:
 		bool		hearingLoss		:1;
 		bool		objectiveFailed	:1;
 		bool		noFallingDamage :1;
+
+
 	} pfl;
 		
 	// inventory
-	idInventory				inventory;
+	idInventory				inventory;					
 
 	rvWeapon*						weapon;
 	idEntityPtr<rvViewWeapon>		weaponViewModel;
@@ -426,6 +441,17 @@ public:
 // RITUAL END
 
 public:
+
+	//mod
+	void AddExperience(int amount);
+	void LevelUp();
+	void GainPerkOne();
+	void GainPerkTwo();
+	void GainPerkThree();
+	void GainPerkFour();
+	void GainPerkFive();
+	void UpgradeDamage(rvWeapon* weapon);
+
 	CLASS_PROTOTYPE( idPlayer );
 
 							idPlayer();

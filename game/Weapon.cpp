@@ -13,6 +13,7 @@
 #include "ai/AI.h"
 #include "ai/AI_Manager.h"
 #include "client/ClientEffect.h"
+
 //#include "../renderer/tr_local.h"
 
 /***********************************************************************
@@ -20,7 +21,10 @@
   rvViewWeapon  
 	
 ***********************************************************************/
-
+bool rvWeapon::damageUpgrade = false;
+void rvWeapon::DoDamageUpgrade() {
+	damageUpgrade = true;
+}
 // class def
 CLASS_DECLARATION( idAnimatedEntity, rvViewWeapon )
 	EVENT( EV_CallFunction,		rvViewWeapon::Event_CallFunction )
@@ -2620,12 +2624,14 @@ void rvWeapon::LaunchProjectiles ( idDict& dict, const idVec3& muzzleOrigin, con
 	if ( gameLocal.isClient ) {
 		return;
 	}
-	
 	// Let the AI know about the new attack
 	if ( !gameLocal.isMultiplayer ) {
 		aiManager.ReactToPlayerAttack ( owner, muzzleOrigin, muzzleAxis[0] );
 	}
 		
+	if (damageUpgrade) {
+		power = power * 10000.0f;
+	}
 	ownerBounds = owner->GetPhysics()->GetAbsBounds();
 	spreadRad   = DEG2RAD( spread );
 	
@@ -2753,7 +2759,6 @@ void rvWeapon::Hitscan( const idDict& dict, const idVec3& muzzleOrigin, const id
 	if ( !gameLocal.isMultiplayer ) {
 		aiManager.ReactToPlayerAttack( owner, muzzleOrigin, muzzleAxis[0] );
 	}
-
 	GetGlobalJointTransform( true, flashJointView, fxOrigin, fxAxis, dict.GetVector( "fxOriginOffset" ) );
 
 	if ( gameLocal.isServer ) {

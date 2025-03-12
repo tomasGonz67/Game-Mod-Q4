@@ -145,7 +145,7 @@ typedef struct rvAICombat_s{
 	float					aggressiveRange;			// Range to become more aggressive
 	float					aggressiveScale;			// Scale to use when altering numbers due to aggression
  	int						investigateTime;
-
+	
 	float					visStandHeight;				// Height to check enemy visibiliy while standing
 	float					visCrouchHeight;			// Height to check enemy visiblity while crouching
  	float					visRange;					// Maximum distance to check enemy visibility
@@ -752,7 +752,7 @@ public:
 
 	// damage
 	virtual bool			Pain							( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location );
-	virtual void			Killed							( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location );
+	virtual void			Killed							( idEntity *inflictor, idEntity *attacker, int damage, const idVec3 &dir, int location);
 	bool					CheckDeathCausesMissionFailure	( void );
 
 	// attacks

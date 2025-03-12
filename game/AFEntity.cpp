@@ -1297,32 +1297,44 @@ idAFEntity_Base::DropAFs
   where * is an aribtrary string.
 ================
 */
-void idAFEntity_Base::DropAFs( idEntity *ent, const char *type, idList<idEntity *> *list ) {
-	const idKeyValue *kv;
-	const char *skinName;
-	idEntity *newEnt;
-	idAFEntity_Base *af;
+void idAFEntity_Base::DropAFs(idEntity* ent, const char* type, idList<idEntity*>* list) {
+	const idKeyValue* kv;
+	const char* skinName;
+	idEntity* newEnt;
+	idAFEntity_Base* af;
 	idDict args;
-	const idDeclSkin *skin;
+	const idDeclSkin* skin;
 
-	// drop the articulated figures
-	kv = ent->spawnArgs.MatchPrefix( va( "def_drop%sAF", type ), NULL );
-	while ( kv ) {
+	// Create an array to hold the drop classnames
+	idList<const char*> drops;
 
-		args.Set( "classname", kv->GetValue() );
-		gameLocal.SpawnEntityDef( args, &newEnt );
+	// Find all drop definitions in spawnArgs
+	kv = ent->spawnArgs.MatchPrefix("def_drops_", NULL);
+	while (kv) {
+		drops.Append(kv->GetValue());
+		kv = ent->spawnArgs.MatchPrefix("def_drops_", kv);
+	}
 
-		if ( newEnt && newEnt->IsType( idAFEntity_Base::Type ) ) {
-			af = static_cast<idAFEntity_Base *>(newEnt);
-			af->GetPhysics()->SetOrigin( ent->GetPhysics()->GetOrigin() );
-			af->GetPhysics()->SetAxis( ent->GetPhysics()->GetAxis() );
-			af->af.SetupPose( ent, gameLocal.time );
-			if ( list ) {
-				list->Append( af );
+	// Ensure we have at least one drop
+	if (drops.Num() > 0) {
+		// Roll a random number to select a drop (random number from 0 to drops.Num() - 1)
+		int randomIndex = gameLocal.random.RandomInt(drops.Num());
+
+		// Set the classname to the randomly selected drop
+		args.Set("classname", drops[randomIndex]);
+
+		// Spawn the selected drop entity
+		gameLocal.SpawnEntityDef(args, &newEnt);
+
+		if (newEnt && newEnt->IsType(idAFEntity_Base::Type)) {
+			af = static_cast<idAFEntity_Base*>(newEnt);
+			af->GetPhysics()->SetOrigin(ent->GetPhysics()->GetOrigin());
+			af->GetPhysics()->SetAxis(ent->GetPhysics()->GetAxis());
+			af->af.SetupPose(ent, gameLocal.time);
+			if (list) {
+				list->Append(af);
 			}
 		}
-
-		kv = ent->spawnArgs.MatchPrefix( va( "def_drop%sAF", type ), kv );
 	}
 
 	// change the skin to hide all the dropped articulated figures

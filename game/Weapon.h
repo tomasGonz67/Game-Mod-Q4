@@ -40,7 +40,6 @@ public:
 
 							rvViewWeapon( void );
 	virtual					~rvViewWeapon( void );
-
 	// Init
 	void					Spawn						( void );
 
@@ -111,6 +110,7 @@ public:
 
 	rvWeapon( void );
 	virtual ~rvWeapon( void );
+
 	
 	enum {
 		WPLIGHT_MUZZLEFLASH,
@@ -127,6 +127,11 @@ public:
 		EVENT_CHANGESKIN,
 		EVENT_MAXEVENTS
 	};
+
+	//mod
+
+	static bool					damageUpgrade;
+	static void					DoDamageUpgrade();
 	
 	void				Init						( idPlayer* _owner, const idDeclEntityDef* def, int weaponIndex, bool isStrogg = false );
 
